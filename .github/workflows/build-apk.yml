@@ -1,0 +1,50 @@
+name: Build Solar House APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract Solar House Project
+        run: |
+          ZIP_FILE=$(find . -maxdepth 1 -type f -name '*.zip' -print -quit)
+          test -n "$ZIP_FILE"
+          mkdir -p /tmp/solarhouse
+          unzip -q "$ZIP_FILE" -d /tmp/solarhouse
+          cp -R /tmp/solarhouse/app ./app
+          cp /tmp/solarhouse/build.gradle.kts .
+          cp /tmp/solarhouse/settings.gradle.kts .
+          cp /tmp/solarhouse/gradle.properties .
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build APK
+        run: gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Solar-House-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+          
