@@ -28,14 +28,27 @@ jobs:
           cp /tmp/solarhouse/settings.gradle.kts .
           cp /tmp/solarhouse/gradle.properties .
           
+      - 
       - name: Fix Java and Kotlin JVM targets
         run: |
-          sed -i '/buildFeatures/i\   
-          compileOptions {\n       
-          sourceCompatibility = JavaVersion.VERSION_17\n      
-          targetCompatibility = JavaVersion.VERSION_17\n    }\n   
-          kotlinOptions {\n        jvmTarget = "17"\n    }' app/build.gradle.kts
-          
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("app/build.gradle.kts")
+          s = p.read_text()
+          old = "    buildFeatures { compose = true }"
+          new = """    compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
+              buildFeatures { compose = true }"""
+          if old not in s:
+              raise SystemExit("Expected buildFeatures line not found")
+          p.write_text(s.replace(old, new, 1))
+          PY
+
 
       - name: Set up Java
         uses: actions/setup-java@v4
