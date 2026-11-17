@@ -1,3 +1,4 @@
+
 name: Build Solar House APK
 
 on:
@@ -12,7 +13,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,16 +27,15 @@ jobs:
           cp /tmp/solarhouse/build.gradle.kts .
           cp /tmp/solarhouse/settings.gradle.kts .
           cp /tmp/solarhouse/gradle.properties .
-          
-      - 
-      - name: Fix Java and Kotlin JVM targets
+
+      - name: Fix Java and Kotlin targets
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path("app/build.gradle.kts")
           s = p.read_text()
-          old = "    buildFeatures { compose = true }"
-          new = """    compileOptions {
+          marker = "    buildFeatures { compose = true }"
+          replacement = """    compileOptions {
                   sourceCompatibility = JavaVersion.VERSION_17
                   targetCompatibility = JavaVersion.VERSION_17
               }
@@ -44,11 +43,10 @@ jobs:
                   jvmTarget = "17"
               }
               buildFeatures { compose = true }"""
-          if old not in s:
-              raise SystemExit("Expected buildFeatures line not found")
-          p.write_text(s.replace(old, new, 1))
+          if marker not in s:
+              raise SystemExit("buildFeatures marker not found")
+          p.write_text(s.replace(marker, replacement, 1))
           PY
-
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -69,4 +67,3 @@ jobs:
         with:
           name: Solar-House-APK
           path: app/build/outputs/apk/debug/app-debug.apk
-          
