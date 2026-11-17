@@ -27,6 +27,15 @@ jobs:
           cp /tmp/solarhouse/build.gradle.kts .
           cp /tmp/solarhouse/settings.gradle.kts .
           cp /tmp/solarhouse/gradle.properties .
+          
+      - name: Fix Java and Kotlin JVM targets
+        run: |
+          sed -i '/buildFeatures/i\   
+          compileOptions {\n       
+          sourceCompatibility = JavaVersion.VERSION_17\n      
+          targetCompatibility = JavaVersion.VERSION_17\n    }\n   
+          kotlinOptions {\n        jvmTarget = "17"\n    }' app/build.gradle.kts
+          
 
       - name: Set up Java
         uses: actions/setup-java@v4
